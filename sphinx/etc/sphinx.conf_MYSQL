@@ -1,0 +1,86 @@
+# Источник данных — MySQL
+# В конфиге источники могут наследоваться. создадим базовый конфиг для любых MySQL-источников
+# чтобы не копипастить данные для подключения
+source base
+{
+    type            = mysql
+    sql_host        = localhost
+    sql_user        = root
+    sql_pass        = 1234
+    sql_db          = test
+    sql_port        = 3306 
+
+    # Ставим кодировку при соединении
+    sql_query_pre                   = SET NAMES utf8
+}
+
+# Теперь настроим источник данных для выборки новостей наследующийся от базового
+source src_news: base
+{
+    # Включаем range (выборку больших таблиц по частям)
+    sql_range_step          = 1000
+
+    # запрос на выборку диапазона id
+    sql_query_range         = SELECT MIN(id), MAX(id) FROM news
+
+    # запрос на выборку самих новостей для индексации
+    # сфинкс понимает даты только в виде числа, так что преобразуем дату в timestamp   
+    sql_query       = \
+        SELECT id, topic, header, body, UNIX_TIMESTAMP(added) AS added \
+        FROM news WHERE id BETWEEN $start AND $end
+
+    # Сохраняем для каждой новости ее topic и дату в аттрибуты
+    sql_attr_uint       = topic
+    sql_attr_timestamp  = added
+}
+
+# Теперь создаем индекс из данных взятых из источника
+index index_news
+{
+    source = src_news
+    # где хранить данные
+    # не знаю, как писать относительный путь, потому пишу абсолютный
+    path = c:/sphinx/data/index/news
+    # где хранить аттрибуты — в индексе (inline) или отдельном файле (extern)
+    docinfo = extern
+    # Либо sbcs (1-байтовая кодировка) либо utf-8
+    
+    charset_type    = utf-8
+    morphology  = lemmatize_ru_all
+    enable_star = 1
+    min_infix_len   = 2
+}
+
+# Говорим сколько памяти можно использовать при индексации (если недодать то будет ошибка)
+# объем памяти зависит от размера таблицы и опредеояется опытным путем
+indexer
+{
+    mem_limit       = 20M
+}
+
+common {
+    lemmatizer_base = c:/sphinx/data/dicts
+}
+
+# настройки поискового демона
+searchd
+{
+    # на каких портах слушать с бинарным проткоолом NodeJS
+    listen          = 9312
+    # и с mysql-протоколом
+    listen          = 9306:mysql41
+
+    # Куда класть логи
+    log         = c:/sphinx/data/log/searchd.log
+    query_log       = c:/sphinx/data/log/query.log
+
+    read_timeout        = 5
+    max_children        = 30
+    pid_file        = c:/sphinx/data/log/searchd.pid
+    max_matches     = 1000
+    seamless_rotate     = 1
+    preopen_indexes     = 1
+    unlink_old      = 1
+    workers         = threads # for RT to work
+    binlog_path     = c:/sphinx/data/biglog/
+}
