@@ -7,12 +7,14 @@ import {
 
 const initialState = {
 	value: '',
+	limit: 10,
 	suggestions: [],
-	limitSuggestions: 3,
-	isLoading: false,
+	isLoadingSuggest: false,
+	isPinging: false,
 }
 
 export default function reducer(state = initialState, action = {}) {
+	console.log('action:', action.type)
 	switch (action.type) {
 		case UPDATE_INPUT_VALUE:
 			return {
@@ -29,14 +31,15 @@ export default function reducer(state = initialState, action = {}) {
 		case LOAD_SUGGESTIONS_BEGIN:
 			return {
 				...state,
-				isLoading: true,
+				...action.payload,
+				isLoadingSuggest: true,
 			}
 
 		case UPDATE_SUGGESTIONS:
 			return {
 				...state,
-				suggestions: action.suggestions,
-				isLoading: false,
+				suggestions: action.payload,
+				isLoadingSuggest: false,
 			}
 
 		default:

@@ -11,10 +11,10 @@ function renderHTML(text) {
 }
 
 export default function Item({ model }) {
-	const { name, text, match, isLoading } = model
+	const { text, match, isLoading, requestItem } = model
 
 	useEffect(() => {
-		model.fetchItem(match.params.id)
+		requestItem(match.params.id)
 	}, [])
 
 	const renderLoader = () => {
@@ -31,9 +31,9 @@ export default function Item({ model }) {
 	}
 
 	return (
-		<div>
+		<React.Fragment>
 			{isLoading && renderLoader()}
 			<p>{renderHTML(text)}</p>
-		</div>
+		</React.Fragment>
 	)
 }

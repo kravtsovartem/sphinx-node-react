@@ -1,26 +1,23 @@
 import React from 'react'
 import { connect } from 'react-redux'
 
-import { fetchResults, changePage } from 'store/SearchListItems/actions'
+import { fetchRequestResults, storeChangePage } from 'store/SearchListItems/actions'
+import { bindActionCreators } from 'redux'
 import SearchList from './SearchList'
 
 function SearchBarContainer(props) {
 	return <SearchList model={props} />
 }
 
-const mapStateToProps = state => {
+function mapStateToProps(state) {
 	return {
 		...state.searchListItems,
-		value: state.searchInput.value,
+		...state.searchInput,
 	}
 }
 
-const mapDispatchToProps = dispatch => {
-	return {
-		dispatchFetchSearch: data => dispatch(fetchResults(data)),
-		dispatchChangePage: page => dispatch(changePage(page)),
-	}
-}
+const mapDispatchToProps = dispatch =>
+	bindActionCreators({ fetchRequestResults, storeChangePage }, dispatch)
 
 export default connect(
 	mapStateToProps,

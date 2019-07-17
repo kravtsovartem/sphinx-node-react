@@ -4,9 +4,19 @@ const createError = require('http-errors')
 const path = require('path')
 const cookieParser = require('cookie-parser')
 const sphinxClient = require('./db')
-
+const helmet = require('fastify-helmet')
+//{ prettyPrint: { colorize: true } }
 const fastify = require('fastify')({
-	logger: { prettyPrint: { colorize: true } },
+	logger: false,
+})
+
+fastify.register(helmet, {
+	hidePoweredBy: { setTo: 'PHP 4.2.0' },
+	contentSecurityPolicy: {
+		directives: {
+			defaultSrc: ["'self'"],
+		},
+	},
 })
 
 fastify.register(require('./routes/search'), { prefix: '/search' })

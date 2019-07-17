@@ -1,71 +1,100 @@
+import { ajax } from 'rxjs/ajax'
+import {
+	catchError,
+	map,
+	switchMap,
+	debounce,
+	distinctUntilChanged,
+	debounceTime,
+	retryWhen,
+	zip,
+	mergeMap,
+	flatMap,
+	filter,
+} from 'rxjs/operators'
+
+import { of, range, timer, Observable, pipe } from 'rxjs'
+import { ofType } from 'redux-observable'
+import { push } from 'connected-react-router'
+
 export const REQUEST_RESULTS = 'REQUEST_RESULTS'
 export const REQUEST_CHANGE_PAGE_RESULTS = 'REQUEST_CHANGE_PAGE_RESULTS'
 export const UPDATE_RESULTS = 'UPDATE_RESULTS'
 
-export function fetchResults({ value = '', page = 1, limit = 5 }) {
-	let time = new Date().getTime()
-	return (dispatch, getStore) => {
-		const store = getStore().searchListItems
-		// Запрос не поменялся.
-		if (store.lastValue === value && page === store.lastPage) return
+export const updateResults = payload => {
+	return { type: UPDATE_RESULTS, ...payload }
+}
 
-		const freezeLoader = setTimeout(() => {
-			dispatch(requestResults(value))
-		}, 300)
+export const fetchResultsEpic = (action$, state$) =>
+	action$.pipe(
+		ofType(REQUEST_RESULTS),
+		debounceTime(300),
+		distinctUntilChanged(),
+		switchMap(action => {
+			let time = new Date().getTime()
+			const state = state$.value
+			const { page, limit, lastValue } = state.searchListItems
+			const { value } = state.searchInput
 
-		fetch('/search', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({ value, page, limit }),
-		})
-			.then(response => response.json())
-			.then(json => {
-				clearTimeout(freezeLoader)
+			if (value === lastValue) return of(updateResults())
 
-				time = (new Date().getTime() - time) / 1000
-				// console.warn('fetchResults -> Время запроса: ', `${time} c.`)
+			return ajax({
+				url: '/search',
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ value, page, limit }),
+			}).pipe(
+				map(res => {
+					time = (new Date().getTime() - time) / 1000
+					// console.warn('fetchResults -> Время запроса: ', `${time} c.`)
 
-				const { data } = json
+					const { data } = res.response
 
-				const items = Object.prototype.hasOwnProperty.call(data, 'matches')
-					? json.data.matches.map(child => child.attrs)
-					: []
+					const items = Object.prototype.hasOwnProperty.call(data, 'matches')
+						? data.matches.map(child => child.attrs)
+						: []
 
-				const pageCount = Math.ceil(data.total / limit)
-				const countResults = data.total
+					const pageCount = Math.ceil(data.total / limit)
+					const countResults = data.total
 
-				return dispatch(
-					updateResults({
+					const payload = {
 						data: items,
 						pageCount,
 						countResults,
 						timeRequest: time,
 						lastValue: value,
 						lastPage: page,
-					}),
-				)
-			})
-	}
-}
+					}
 
-export function changePage(page) {
+					return updateResults(payload)
+				}),
+
+				retryWhen(err => {
+					return err.pipe(
+						zip(range(1, 5), err, (e, i) => {
+							return i
+						}),
+						flatMap(i => {
+							return timer(i * 1000)
+						}),
+					)
+				}),
+			)
+		}),
+	)
+
+export function storeChangePage(page) {
 	return {
 		type: REQUEST_CHANGE_PAGE_RESULTS,
 		page,
 	}
 }
 
-export function requestResults(value) {
+export const fetchRequestResults = payload => {
 	return {
 		type: REQUEST_RESULTS,
-	}
-}
-
-export function updateResults(data) {
-	return {
-		type: UPDATE_RESULTS,
-		...data,
+		payload,
 	}
 }

@@ -1,7 +1,9 @@
 import React from 'react'
 import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 
-import { updateInputValue, loadSuggestions, clearSuggestions } from 'store/SearchInput/actions'
+import { fetchSuggestionsRequest } from 'store/SearchInput/actions'
+import { fetchRequestResults } from 'store/SearchListItems/actions'
 import SearchInput from './SearchInput'
 
 function SearchInputContainer(props) {
@@ -9,34 +11,16 @@ function SearchInputContainer(props) {
 }
 
 function mapStateToProps(state) {
-	const { value, suggestions, isLoading } = state.searchInput
-	const { data, countResults, timeRequest, page } = state.searchListItems
-
 	return {
-		value,
-		suggestions,
-		isLoading,
-		data,
-		countResults,
-		timeRequest,
-		page,
+		...state.searchInput,
+		...state.searchListItems,
 		routerLocationSearch: state.router.location.search,
+		router: state.router,
 	}
 }
 
-function mapDispatchToProps(dispatch, ownProps) {
-	return {
-		onChange(newValue) {
-			dispatch(updateInputValue(newValue))
-		},
-		onSuggestionsFetchRequested({ value }) {
-			dispatch(loadSuggestions(value))
-		},
-		onSuggestionsClearRequested() {
-			dispatch(clearSuggestions())
-		},
-	}
-}
+const mapDispatchToProps = dispatch =>
+	bindActionCreators({ fetchSuggestionsRequest, fetchRequestResults }, dispatch)
 
 export default connect(
 	mapStateToProps,

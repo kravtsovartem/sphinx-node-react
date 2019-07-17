@@ -1,6 +1,6 @@
 {
-	"extends": ["airbnb", "prettier", "prettier/react", "react-app", "plugin:security/recommended"],
-	"plugins": ["prettier", "security"],
+	"extends": ["airbnb", "prettier", "prettier/react", "react-app"],
+	"plugins": ["prettier"],
 	"parser": "babel-eslint",
 	"parserOptions": {
 		"ecmaFeatures": {

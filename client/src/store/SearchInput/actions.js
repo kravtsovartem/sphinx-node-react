@@ -1,57 +1,66 @@
-import { push } from 'connected-react-router'
+import { ajax } from 'rxjs/ajax'
+import {
+	catchError,
+	map,
+	switchMap,
+	distinctUntilChanged,
+	debounceTime,
+	filter,
+} from 'rxjs/operators'
+import { of, range, timer } from 'rxjs'
+import { ofType } from 'redux-observable'
 
-// Подсказки.
-export function loadSuggestions(value) {
-	return (dispatch, getState) => {
-		const state = getState()
-		if (value === state.searchInput.value) return
+export const LOAD_SUGGESTIONS_BEGIN = 'LOAD_SUGGESTIONS_BEGIN'
+export const UPDATE_SUGGESTIONS = 'UPDATE_SUGGESTIONS'
+export const CLEAR_SUGGESTIONS = 'CLEAR_SUGGESTIONS'
+export const UPDATE_INPUT_VALUE = 'UPDATE_INPUT_VALUE'
 
-		const limit = state.searchInput.limitSuggestions
-
-		dispatch(loadSuggestionsBegin())
-
-		fetch('/search/suggest', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({ value, limit }),
-		})
-			.then(response => response.json())
-			.then(json => dispatch(updateSuggestions(json.data, value)))
-	}
+export const fetchSuggestionsRequest = value => {
+	return { type: LOAD_SUGGESTIONS_BEGIN, payload: { value, limit: 10 } }
+}
+export const fetchSuggestionsFulfilled = payload => {
+	return { type: UPDATE_SUGGESTIONS, payload }
 }
 
-export const UPDATE_INPUT_VALUE = 'UPDATE_INPUT_VALUE'
+export const fetchSuggestionsEpic = (action$, state$) => {
+	return action$.pipe(
+		ofType(LOAD_SUGGESTIONS_BEGIN),
+		filter(({ payload }) => {
+			if (payload.value !== undefined && payload.value.trim().length > 0) return true
+
+			return false
+		}),
+		debounceTime(300),
+		distinctUntilChanged(),
+		switchMap(action => {
+			const { value, limit } = action.payload
+			return ajax({
+				url: '/search/suggest',
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ value, limit }),
+			}).pipe(
+				map(res => fetchSuggestionsFulfilled(res.response.data)),
+				catchError(ex => {
+					return of(ex)
+				}),
+			)
+		}),
+	)
+}
+
 export function updateInputValue(value) {
 	return (dispatch, getState) => {
-		dispatch(push(value.trim().length > 0 ? `/search?q=${value}` : '/'))
 		dispatch({
 			type: UPDATE_INPUT_VALUE,
 			value,
 		})
 	}
 }
-
-export const CLEAR_SUGGESTIONS = 'CLEAR_SUGGESTIONS'
 export function clearSuggestions() {
 	return {
 		type: CLEAR_SUGGESTIONS,
-	}
-}
-
-export const LOAD_SUGGESTIONS_BEGIN = 'LOAD_SUGGESTIONS_BEGIN'
-export function loadSuggestionsBegin() {
-	return {
-		type: LOAD_SUGGESTIONS_BEGIN,
-	}
-}
-
-export const UPDATE_SUGGESTIONS = 'UPDATE_SUGGESTIONS'
-export function updateSuggestions(suggestions, value) {
-	return {
-		type: UPDATE_SUGGESTIONS,
-		suggestions,
-		value,
 	}
 }

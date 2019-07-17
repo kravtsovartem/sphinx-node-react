@@ -1,7 +1,8 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { fetchItem } from 'store/Item/actions'
+import { requestItem } from 'store/Item/actions'
 
+import { bindActionCreators } from 'redux'
 import Item from './Item'
 
 function SearchBarContainer(props) {
@@ -12,12 +13,8 @@ const mapStateToProps = state => {
 	return state.item
 }
 
-function mapDispatchToProps(dispatch) {
-	return {
-		fetchItem(newValue) {
-			dispatch(fetchItem(newValue))
-		},
-	}
+const mapDispatchToProps = dispatch => {
+	return bindActionCreators({ requestItem }, dispatch)
 }
 
 export default connect(

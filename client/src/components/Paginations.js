@@ -47,10 +47,10 @@ const style = css`
 `
 
 export default function Paginations(props) {
-	const { pageCount, page, dispatchChangePage } = props
+	const { pageCount, page, onChangePage } = props
 
 	const handlePageClick = ({ selected }) => {
-		dispatchChangePage(selected + 1)
+		onChangePage(selected + 1)
 		window.scrollTo(0, 0)
 	}
 

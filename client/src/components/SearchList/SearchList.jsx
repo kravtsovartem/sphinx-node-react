@@ -31,25 +31,19 @@ const renderStatResult = ({ countResults, timeRequest, page }) => {
 }
 
 export default function SearchListItems({ model }) {
-	const {
-		dispatchFetchSearch,
-		dispatchChangePage,
-		data,
-		pageCount,
-		page,
-		value,
-		isLoading,
-	} = model
-
-	// console.log('value :', pageCount)
+	const { fetchRequestResults, data, pageCount, page, value, isLoading, storeChangePage } = model
 
 	useEffect(() => {
-		dispatchFetchSearch(model)
-	}, [page, value])
+		fetchRequestResults()
+	}, [page])
 
 	const renderItems = data.map(item => {
 		return <SearchItem key={item.uid} model={item} />
 	})
+
+	const handleChangePage = currentPage => {
+		storeChangePage(currentPage)
+	}
 
 	const renderLoader = () => {
 		return (
@@ -65,7 +59,7 @@ export default function SearchListItems({ model }) {
 	}
 
 	return (
-		<div>
+		<React.Fragment>
 			{!isLoading && renderStatResult(model)}
 			{!isLoading && data.length === 0 ? renderEmpty(value) : null}
 
@@ -73,12 +67,8 @@ export default function SearchListItems({ model }) {
 
 			{!isLoading && renderItems}
 			{pageCount > 1 && (
-				<Paginations
-					pageCount={pageCount}
-					page={page}
-					dispatchChangePage={dispatchChangePage}
-				/>
+				<Paginations pageCount={pageCount} page={page} onChangePage={handleChangePage} />
 			)}
-		</div>
+		</React.Fragment>
 	)
 }

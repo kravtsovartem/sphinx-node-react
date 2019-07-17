@@ -4,7 +4,7 @@ import './index.css'
 
 import { ConnectedRouter } from 'connected-react-router'
 import { Provider } from 'react-redux'
-import configureStore, { history } from './store/configureStore'
+import configureStore, { history } from 'store/configureStore'
 import App from './App'
 import * as serviceWorker from './serviceWorker'
 import 'babel-polyfill'

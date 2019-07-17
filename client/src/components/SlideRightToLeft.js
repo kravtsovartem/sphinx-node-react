@@ -4,8 +4,8 @@ import Slider from './Slider'
 
 class SlideOut extends React.Component {
 	constructor(props) {
-		console.log('props :', props)
 		super(props)
+		console.log('props :', props)
 
 		this.state = {
 			childPosition: Slider.CENTER,
@@ -18,8 +18,16 @@ class SlideOut extends React.Component {
 
 		this.optionsAnimation = {
 			TO: Slider.TO_LEFT,
+			FROM: Slider.CENTER,
+		}
+
+		/*
+
+		this.optionsAnimation = {
+			TO: Slider.TO_LEFT,
 			FROM: Slider.FROM_RIGHT,
 		}
+        */
 	}
 
 	componentDidUpdate(prevProps, prevState) {
@@ -59,16 +67,26 @@ class SlideOut extends React.Component {
 	}
 }
 
-const animateSwitch = (CustomSwitch, AnimatorComponent) => ({ updateStep, children }) => (
-	<Route
-		render={({ location }) => (
-			<AnimatorComponent uniqKey={location.pathname} updateStep={updateStep}>
-				<CustomSwitch location={location}>{children}</CustomSwitch>
-			</AnimatorComponent>
-		)}
-	/>
-)
+const animateSwitch = (CustomSwitch, AnimatorComponent) => {
+	return ({ updateStep, children }) => {
+		return (
+			<Route
+				render={({ location }) => {
+					return (
+						<AnimatorComponent uniqKey={location.pathname} updateStep={updateStep}>
+							<CustomSwitch location={location}>{children}</CustomSwitch>
+						</AnimatorComponent>
+					)
+				}}
+			/>
+		)
+	}
+}
 
-const SwitchWithSlide = animateSwitch(Switch, SlideOut)
+function SwitchWithSlide(props) {
+	console.log('SwitchWithSlide :', props)
 
-export default SwitchWithSlide
+	return animateSwitch(Switch, SlideOut)
+}
+
+export default SwitchWithSlide()
