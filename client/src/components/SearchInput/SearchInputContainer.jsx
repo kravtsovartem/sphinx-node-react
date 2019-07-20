@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 
-import { fetchSuggestionsRequest } from 'store/SearchInput/actions'
+import { fetchSuggestionsRequest, updateInputValue } from 'store/SearchInput/actions'
 import { fetchRequestResults } from 'store/SearchListItems/actions'
 import SearchInput from './SearchInput'
 
@@ -20,7 +20,7 @@ function mapStateToProps(state) {
 }
 
 const mapDispatchToProps = dispatch =>
-	bindActionCreators({ fetchSuggestionsRequest, fetchRequestResults }, dispatch)
+	bindActionCreators({ fetchSuggestionsRequest, fetchRequestResults, updateInputValue }, dispatch)
 
 export default connect(
 	mapStateToProps,

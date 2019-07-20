@@ -3,7 +3,7 @@ const nr = require('newrelic')
 const createError = require('http-errors')
 const path = require('path')
 const cookieParser = require('cookie-parser')
-const sphinxClient = require('./db')
+const sphinxClient = require('./db/sphinxapi')
 const helmet = require('fastify-helmet')
 //{ prettyPrint: { colorize: true } }
 const fastify = require('fastify')({

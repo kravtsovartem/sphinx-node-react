@@ -8,7 +8,8 @@ const initialState = {
 	pageCount: 1,
 	countResults: 0,
 	timeRequest: 0,
-	lastValue: '',
+	value: '',
+	lastValue: null,
 	lastPage: 1,
 }
 

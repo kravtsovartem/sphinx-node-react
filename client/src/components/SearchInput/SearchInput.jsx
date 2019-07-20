@@ -16,14 +16,13 @@ function renderSuggestion(suggestion) {
 function SearchInput(props) {
 	const { model } = props
 	const {
-		value,
 		suggestions,
 		routerLocationSearch,
 		fetchSuggestionsRequest,
 		fetchRequestResults,
 	} = model
 
-	const [text, setText] = useState(value)
+	const [text, setText] = useState('')
 
 	useEffect(() => {
 		const oQueryString = queryString.parse(routerLocationSearch)
@@ -31,24 +30,24 @@ function SearchInput(props) {
 		const queryWord = oQueryString.q
 		if (queryWord !== undefined && queryWord !== null && queryWord.trim().length > 0) {
 			setText(queryWord)
+			fetchRequestResults()
 		}
 	}, [])
 
-	const requestSuggestions = word => {
-		fetchSuggestionsRequest(word)
+	const sendSearch = val => {
+		console.log('val :', val)
+		fetchRequestResults()
+		const url = val.trim().length > 0 ? `/search?q=${val}` : '/'
+		props.history.push(url)
 	}
 
 	const onChangeText = (e, { newValue, method }) => {
-		if (e.keyCode === 40 || e.keyCode === 38) return
-		requestSuggestions(newValue)
 		setText(newValue)
 	}
 
 	const handleKeyDownEnter = e => {
 		if (e.key === 'Enter') {
-			const url = text.trim().length > 0 ? `/search?q=${text}` : '/'
-			props.history.push(url)
-			fetchRequestResults(text)
+			sendSearch(text)
 		}
 	}
 
@@ -59,7 +58,10 @@ function SearchInput(props) {
 	const onSuggestionSelected = (
 		event,
 		{ suggestion, suggestionValue, suggestionIndex, sectionIndex, method },
-	) => {}
+	) => {
+		setText(suggestionValue)
+		sendSearch(suggestionValue)
+	}
 
 	const inputProps = {
 		placeholder: 'Поиск..',
@@ -70,7 +72,9 @@ function SearchInput(props) {
 	}
 
 	const onSuggestionsClearRequested = () => {}
-	const onSuggestionsFetchRequested = () => {}
+	const onSuggestionsFetchRequested = ({ value }) => {
+		fetchSuggestionsRequest(value)
+	}
 
 	return (
 		<React.Fragment>

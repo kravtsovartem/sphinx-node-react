@@ -10,7 +10,6 @@ const initialState = {
 	limit: 10,
 	suggestions: [],
 	isLoadingSuggest: false,
-	isPinging: false,
 }
 
 export default function reducer(state = initialState, action = {}) {
@@ -19,7 +18,7 @@ export default function reducer(state = initialState, action = {}) {
 		case UPDATE_INPUT_VALUE:
 			return {
 				...state,
-				value: action.value,
+				value: action.payload,
 			}
 
 		case CLEAR_SUGGESTIONS:

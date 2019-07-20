@@ -7,7 +7,7 @@ import {
 	debounceTime,
 	filter,
 } from 'rxjs/operators'
-import { of, range, timer } from 'rxjs'
+import { of } from 'rxjs'
 import { ofType } from 'redux-observable'
 
 export const LOAD_SUGGESTIONS_BEGIN = 'LOAD_SUGGESTIONS_BEGIN'
@@ -28,7 +28,9 @@ export const fetchSuggestionsEpic = (action$, state$) => {
 		filter(({ payload }) => {
 			if (payload.value !== undefined && payload.value.trim().length > 0) return true
 
-			return false
+			return of({
+				type: UPDATE_SUGGESTIONS,
+			})
 		}),
 		debounceTime(300),
 		distinctUntilChanged(),
@@ -42,7 +44,10 @@ export const fetchSuggestionsEpic = (action$, state$) => {
 				},
 				body: JSON.stringify({ value, limit }),
 			}).pipe(
-				map(res => fetchSuggestionsFulfilled(res.response.data)),
+				map(res => {
+					console.log('res :', res)
+					return fetchSuggestionsFulfilled(res.response.data)
+				}),
 				catchError(ex => {
 					return of(ex)
 				}),
@@ -52,11 +57,9 @@ export const fetchSuggestionsEpic = (action$, state$) => {
 }
 
 export function updateInputValue(value) {
-	return (dispatch, getState) => {
-		dispatch({
-			type: UPDATE_INPUT_VALUE,
-			value,
-		})
+	return {
+		type: UPDATE_INPUT_VALUE,
+		payload: value,
 	}
 }
 export function clearSuggestions() {

@@ -37,7 +37,6 @@ export const fetchResultsEpic = (action$, state$) =>
 			const { value } = state.searchInput
 
 			if (value === lastValue) return of(updateResults())
-
 			return ajax({
 				url: '/search',
 				method: 'POST',
